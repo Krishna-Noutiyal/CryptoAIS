@@ -1,0 +1,18 @@
+[project]
+name = "CryptAIS"
+version = "1.2"
+description = "A capital gain visualizer that calculates profit/loss and taxation on Crypto Trades using AIS's Data"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Krishna Noutiyal"}
+]
+dependencies = [
+  "flet", "openpyxl", "pandas", "toml"
+]
+
+[tool.flet]
+product = "CryptAIS"
+company = "Pooja ITR Center"
+copyright = "Copyright (C) 2025 Pooja ITR Center"
+
