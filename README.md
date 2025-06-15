@@ -13,17 +13,32 @@ The software is created for **Pooja ITR Centre**, and is publicly available for 
 
 ## Interface Preview 🖥️
 
+### Crypto Capital Gain Dashboard
+
+This is how the generated dashboard will look like:
+
+<p align="center">
+  <img src="./assets/dashboard.png" alt="CryptoAIS Dashboard" width="600"><br>
+  <strong>CryptoAIS Dashboard</strong>
+</p>
+
 ### App UI
 
 The clean, modern interface makes the entire process simple and intuitive:
 
-![CryptoAIS Interface](./assets/interface.png)
+<p align="center">
+  <img src="./assets/interface.png" alt="CryptoAIS Interface" width="600"><br>
+  <strong>CryptoAIS Interface</strong>
+</p>
 
 ### Installer
 
 Includes a modern installer for smooth setup:
 
-![Installing CryptoAIS](./assets/installer.png)
+<p align="center">
+  <img src="./assets/installer.png" alt="Installing CryptoAIS" width="600"><br>
+  <strong>Installing CryptoAIS</strong>
+</p>
 
 ---
 
