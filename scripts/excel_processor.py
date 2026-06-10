@@ -90,7 +90,8 @@ class ExcelProcessor:
         # Define font styles
 
         bold_font = Font(name="calibri", bold=True, size=16)
-        blue_font = Font(name="calibri", size=18, bold=True, color="FFFFFF")
+        medium_font = Font(name="calibri", size=18, bold=True, color="FFFFFF")
+        medium_bold_font = Font(name="calibri", size=18, bold=True, color="FFFFFF")
         normal_font = Font(name="calibri", size=12)
         big_font = Font(name="calibri", bold=True, size=26)
         black_font = Font(name="calibri", color="FFFFFF", bold=True, size=16)
@@ -128,6 +129,9 @@ class ExcelProcessor:
         green_fill = PatternFill(
             start_color="00B050", end_color="00B050", fill_type="solid"
         )
+        red_fill = PatternFill(
+            start_color="FF5050", end_color="FF5050", fill_type="solid"
+        )
 
         # Store styles in self.s
         self.s = {
@@ -158,15 +162,21 @@ class ExcelProcessor:
                 "border": thin_border,
             },
             "blue": {
-                "font": blue_font,
+                "font": medium_font,
                 "alignment": center_alignment,
                 "fill": blue_fill,
                 "border": thin_border,
             },
             "green": {
-                "font": bold_font,
+                "font": medium_bold_font,
                 "alignment": center_alignment,
                 "fill": green_fill,
+                "border": thin_border,
+            },
+            "red": {
+                "font": medium_bold_font,
+                "alignment": center_alignment,
+                "fill": red_fill,
                 "border": thin_border,
             },
             "green_h": {
@@ -208,24 +218,12 @@ class ExcelProcessor:
         from openpyxl.utils import get_column_letter
 
         # Set row heights for all existing rows plus extra buffer
-        max_row = max(self.ws.max_row, 100)  # At least 100 rows
+        max_row = max(self.ws.max_row, 1000)  # At least 100 rows
         for row in range(1, max_row + 1):
             self.ws.row_dimensions[row].height = 43
 
-        # Set column widths for all existing columns plus extra buffer
-        max_col = max(self.ws.max_column, 26)  # At least 26 columns (A-Z)
-        for col in range(1, max_col + 1):
-            col_letter = get_column_letter(col)
-            self.ws.column_dimensions[col_letter].width = (
-                26.1 + 0.71
-            )  # type: ignore # Some Randome shit decreases the width by 0.71
-
-        # Set defaults for any new rows/columns that might be added later
-        self.ws.sheet_format.defaultRowHeight = 43
-        self.ws.sheet_format.defaultColWidth = (
-            26.1 + 0.71
-        )  # Some Randome shit decreases the width by 0.71
-        self.ws.sheet_format.customHeight = False  # Don't auto-adjust heights
+        # Set column widths for all existing columns
+        self.ws.sheet_format.defaultColWidth = 30
 
     def _set_default_style(self, max_rows: int = 200, max_cols: int = 50) -> None:
         """
@@ -281,59 +279,31 @@ class ExcelProcessor:
         self._set_worksheet_dimensions()
         self._set_default_style()
 
-        self.ws.merge_cells("A1:J1")
+        self.ws.merge_cells("A1:G1")
         crypto_details = self.ws["A1"]
         self.set(crypto_details, "Crypto Details", "black_h")
 
-        self.ws.merge_cells("A2:B2")
+        self.ws.column_dimensions["A"].width = 10
         source = self.ws["A2"]
-        self.set(source, "Source", "dark_red")
+        self.set(source, "S.No", "dark_red")
 
-        doa = self.ws["C2"]
+        doa = self.ws["B2"]
         self.set(doa, "Date of Acquisition", "medium_red")
 
-        dot = self.ws["D2"]
+        dot = self.ws["C2"]
         self.set(dot, "Date of Transfer", "light_red")
 
-        coa = self.ws["E2"]
+        coa = self.ws["D2"]
         self.set(coa, "Cost of Acquisition", "dark_red")
 
-        cr = self.ws["F2"]
+        cr = self.ws["E2"]
         self.set(cr, "Consideration Recived", "medium_red")
 
-        cg = self.ws["g2"]
-        self.set(cg, "Capital Gain", "blue")
+        cr = self.ws["F2"]
+        self.set(cr, "Capital Gain", "dark_red")
 
-        self.ws.merge_cells("H2:J2")
-        msg = self.ws["H2"]
-        self.set(msg, "Accha Khasa LOSS Hua Hai Bhai Saab", "black")
-
-        """################# Total Capital Gain #################"""
-
-        self.ws.merge_cells("H3:J3")
-        tcg_title = self.ws["H3"]
-        self.set(tcg_title, "Total Capital Gain", "blue")
-
-        self.ws.merge_cells("H4:J7")
-        tcg_value = self.ws["H4"]
-
-        """################# Total Cost of Acquisition #################"""
-
-        self.ws.merge_cells("H8:J8")
-        tcoa_title = self.ws["H8"]
-        self.set(tcoa_title, "Total Cost of Acquisition", "blue")
-
-        self.ws.merge_cells("H9:J10")
-        tcoa_value = self.ws["H9"]
-
-        """################# Total Consideration Recived #################"""
-
-        self.ws.merge_cells("H11:J11")
-        tcr_title = self.ws["H11"]
-        self.set(tcr_title, "Total Consideration Recived", "blue")
-
-        self.ws.merge_cells("H12:J14")
-        tcr_value = self.ws["H12"]
+        cg = self.ws["G2"]
+        self.set(cg, "TDS Deducted", "blue")
 
         """################# Evaluationg Crypto Data #################"""
 
@@ -350,32 +320,38 @@ class ExcelProcessor:
 
         # Inserting Details
 
+        df["date_of_acquisition"] = None
+        df["cost_of_acquisition"] = None
+        df["capital_gain"] = None
+        df["tds_deducted"] = None
+
         df_values = df.values
         for i, data in enumerate(df_values):
 
-            print(f"({i}) \t {data[0]} \t {data[1].date()} \t {data[2]}")
-            # Inserting Source Detail
-            src_cell_index = "A" + str(3 + i)
-            self.ws.merge_cells(src_cell_index + ":" + "B" + str(3 + i))
-            src_cell = self.ws[src_cell_index]
-            self.set(src_cell, data[0], "blank")
+            # Cell Number
+            cno = str(3 + i)
 
-            # Inserting Date of Transfer
-            dot_cell_index = "D" + str(3 + i)
+            print(f"({i}) \t {data[0]} \t {data[1].date()} \t {data[2]}")
+
+            # Inserting Source Serial No ( sno )
+            sno_cell_index = "A" + cno
+            sno_cell = self.ws[sno_cell_index]
+            self.set(sno_cell, i + 1, "blank")
+
+            # Inserting Date of Transfer ( dot )
+            dot_cell_index = "C" + cno
             dot_cell = self.ws[dot_cell_index]
             self.set(dot_cell, data[1], "blank", "date")
 
             # Inserting Consideration Received
-            cr_cell_index = "F" + str(3 + i)
+            cr_cell_index = "E" + cno
             cr_cell = self.ws[cr_cell_index]
             cr_value = data[2]
             self.set(cr_cell, cr_value, "blank")
 
             """################# Generating Crypto Details #################"""
 
-            doa_cell = "C" + str(3 + i)
-
-            # Generating Date of Acquisition
+            # Generating Date of Acquisition ( doa )
             # Generate a random date between 01-04-2024 and data[1]
             start_date = dt.datetime(2024, 4, 1)
             end_date = data[1]
@@ -386,8 +362,12 @@ class ExcelProcessor:
                 random_days = r.randint(0, delta.days)
                 random_date = start_date + dt.timedelta(days=random_days)
 
+            doa_cell = "B" + cno
             doa_cell_obj = self.ws[doa_cell]
             self.set(doa_cell_obj, random_date, "blank", "date")
+
+            # Inserting doa in the original dataframe
+            df.at[i, "date_of_acquisition"] = random_date
 
             # Generate Cost of Acquisition (coa) - mostly greater than consideration_received (data[2])
             # 80% chance to be greater, 20% chance to be less or equal
@@ -400,35 +380,59 @@ class ExcelProcessor:
                 decrement = r.uniform(0, 0.2)
                 coa_value = round(data[2] * (1 - decrement), 2)
 
-            coa_cell_index = "E" + str(3 + i)
+            coa_cell_index = "D" + cno
             coa_cell = self.ws[coa_cell_index]
             self.set(coa_cell, int(coa_value), "blank")
 
+            # Inserting coa in the original dataframe
+            df.at[i, "cost_of_acquisition"] = coa_value
+
             # Calculate Capital Gain (cg): consideration_received - cost_of_acquisition
-            cg_cell_index = "G" + str(3 + i)
+            cg_value = cr_value - coa_value
+            df.at[i, "capital_gain"] = cg_value
+
+            cg_cell_index = "F" + cno
             cg_cell = self.ws[cg_cell_index]
-            cg_cell_formula = "=F" + str(3 + i) + "-E" + str(3 + i) + ""
 
-            if cr_value - coa_value <= 0:
-                self.set(cg_cell, cg_cell_formula, "light_red")
-            else:
-                self.set(cg_cell, cg_cell_formula, "green")
+            cg_cell_formula = "=E" + cno + "-D" + cno + ""
+            self.set(cg_cell, cg_cell_formula, "blank")
 
-        """################# Total Capital Gain #################"""
+            # Inserting TDS Deducted in the original dataframe
+            df.at[i, "tds_deducted"] = max(cg_value, 0)
+
+            tds_cell_index = "G" + cno
+            tds_cell = self.ws[tds_cell_index]
+
+            tds_cell_formula = f"=MAX(F{cno},0)"
+            self.set(tds_cell, tds_cell_formula, "blank")
+
+        """################# Total Crypto Gain/Loss #################"""
         # Calculate the number of data rows
         num_rows = len(df)
+        last = num_rows + 2
 
-        # Total Capital Gain
-        tcg_formula = "=SUM(G3:G" + str(3 + num_rows - 1) + ")"
-        self.set(tcg_value, tcg_formula, "dark_red_h")
+        cr = sum(df["consideration_received"])
+        cg = sum(df["capital_gain"])
 
-        # Total Cost of Acquisition
-        tcoa_formula = "=SUM(E3:E" + str(3 + num_rows - 1) + ")"
-        self.set(tcoa_value, tcoa_formula, "light_red_h")
+        # Total Heading
+        self.ws.merge_cells(f"A{last}:C{last}")
+        self.set(self.ws[f"A{last}"], "Total", "black_h")
 
-        # Total Consideration Received
-        tcr_formula = "=SUM(F3:F" + str(3 + num_rows - 1) + ")"
-        self.set(tcr_value, tcr_formula, "green_h")
+        # Coa total ( Cost of Acquisition )
+        coa_total = f"=SUM(D3:D{last-1})"
+        self.set(self.ws[f"D{last}"], coa_total, "red")
+
+        # Cr total ( Consideration Recived )
+        cr_total = f"=SUM(E3:E{last-1})"
+        self.set(self.ws[f"E{last}"], cr_total, "red")
+
+        # cg total ( Consideration Recived )
+        cg_total = f"=SUM(F3:F{last-1})"
+        self.set(self.ws[f"F{last}"], cg_total, "red")
+
+        # tds total ( Consideration Recived )
+        tds_total = f"=SUM(G3:G{last-1})"
+        self.set(self.ws[f"G{last}"], tds_total, "red")
 
         for ws in self.workbook.worksheets:
             ws.sheet_view.tabSelected = None
