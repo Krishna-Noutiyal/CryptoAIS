@@ -57,8 +57,7 @@ class ExcelProcessor:
             self.ws = workbook[sheet_name]
             del workbook[sheet_name]
             self.ws = self.workbook.create_sheet(sheet_name, 0)
-            # raise FileExistsError("The Sheet Was Deleted Successfully !")
-            # Sheet exists, use it
+            # raise FileExistsError("The
         except:
             # Sheet doesn't exist
             self.ws = self.workbook.create_sheet(sheet_name, 0)
@@ -268,7 +267,9 @@ class ExcelProcessor:
             cell.number_format = "General"
         # You can add more types/formats as needed
 
-    def make_dashboard(self, form_16: str, df: pd.DataFrame, sheet_name: str = "Crypto") -> bool:
+    def make_dashboard(
+        self, form_16: str, df: pd.DataFrame, sheet_name: str = "Crypto"
+    ) -> bool:
         """
         Creates the Dashboard for crypto Calculations
         """
@@ -339,9 +340,9 @@ class ExcelProcessor:
         # Rename columns for consistency
         df = df.rename(
             columns={
-            "Information Source": "source",
-            "Date of Payment/Credit": "date_of_transfer",
-            "Amount Paid/Credited - Reported by Source": "consideration_received",
+                "Information Source": "source",
+                "Date of Payment/Credit": "date_of_transfer",
+                "Amount Paid/Credited - Reported by Source": "consideration_received",
             }
         )
 
@@ -354,25 +355,25 @@ class ExcelProcessor:
 
             print(f"({i}) \t {data[0]} \t {data[1].date()} \t {data[2]}")
             # Inserting Source Detail
-            src_cell_index = "A"+ str(3+i)
-            self.ws.merge_cells(src_cell_index+ ":"+ "B"+ str(3+i))
+            src_cell_index = "A" + str(3 + i)
+            self.ws.merge_cells(src_cell_index + ":" + "B" + str(3 + i))
             src_cell = self.ws[src_cell_index]
-            self.set(src_cell,data[0],"blank")
+            self.set(src_cell, data[0], "blank")
 
             # Inserting Date of Transfer
-            dot_cell_index = "D" + str(3+i)
+            dot_cell_index = "D" + str(3 + i)
             dot_cell = self.ws[dot_cell_index]
-            self.set(dot_cell,data[1],"blank","date")
+            self.set(dot_cell, data[1], "blank", "date")
 
             # Inserting Consideration Received
-            cr_cell_index = "F" + str(3+i)
+            cr_cell_index = "F" + str(3 + i)
             cr_cell = self.ws[cr_cell_index]
             cr_value = data[2]
-            self.set(cr_cell,cr_value,"blank")
+            self.set(cr_cell, cr_value, "blank")
 
             """################# Generating Crypto Details #################"""
 
-            doa_cell = "C"+ str(3+i)
+            doa_cell = "C" + str(3 + i)
 
             # Generating Date of Acquisition
             # Generate a random date between 01-04-2024 and data[1]
@@ -406,9 +407,9 @@ class ExcelProcessor:
             # Calculate Capital Gain (cg): consideration_received - cost_of_acquisition
             cg_cell_index = "G" + str(3 + i)
             cg_cell = self.ws[cg_cell_index]
-            cg_cell_formula = "=F" + str(3 +i) +"-E"+ str(3+i) + ""
+            cg_cell_formula = "=F" + str(3 + i) + "-E" + str(3 + i) + ""
 
-            if (cr_value- coa_value  <= 0):
+            if cr_value - coa_value <= 0:
                 self.set(cg_cell, cg_cell_formula, "light_red")
             else:
                 self.set(cg_cell, cg_cell_formula, "green")
@@ -418,17 +419,21 @@ class ExcelProcessor:
         num_rows = len(df)
 
         # Total Capital Gain
-        tcg_formula = "=SUM(G3:G" + str(3 + num_rows -1) + ")"
+        tcg_formula = "=SUM(G3:G" + str(3 + num_rows - 1) + ")"
         self.set(tcg_value, tcg_formula, "dark_red_h")
 
         # Total Cost of Acquisition
-        tcoa_formula = "=SUM(E3:E" + str(3 + num_rows -1) + ")"
+        tcoa_formula = "=SUM(E3:E" + str(3 + num_rows - 1) + ")"
         self.set(tcoa_value, tcoa_formula, "light_red_h")
 
         # Total Consideration Received
-        tcr_formula = "=SUM(F3:F" + str(3 + num_rows -1) + ")"
+        tcr_formula = "=SUM(F3:F" + str(3 + num_rows - 1) + ")"
         self.set(tcr_value, tcr_formula, "green_h")
 
+        for ws in self.workbook.worksheets:
+            ws.sheet_view.tabSelected = None
+
+        self.workbook.active = self.ws
         self.workbook.close()
         self.workbook.save(form_16)
 
