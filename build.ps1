@@ -1,6 +1,9 @@
 # Enable ANSI escape codes in PowerShell
 $esc = [char]27
-$version = "1.2.3"
+$pyprojectContent = Get-Content "$PSScriptRoot\pyproject.toml" -Raw
+if ($pyprojectContent -match 'version\s*=\s*"([^"]+)"') {
+    $version = $matches[1]
+}
 function Write-Info($msg) {
     Write-Host "$esc[1;34m[INFO]$esc[0m $msg"
 }
@@ -75,7 +78,7 @@ if ($installReq) {
 Clear-Host
 
 # Step 2: Build the Flet App
-Write-Section "Building Flet Windows Application"
+Write-Section "Building Flet v$version Windows Application"
 
 try {
     flet build windows `
@@ -86,7 +89,7 @@ try {
         --build-version $version `
         --company "Pooja ITR Center" `
         --copyright "Copyright (C) 2025 Pooja ITR Center" `
-        --exclude "release, icons, requirements.txt, README.md, certs, test, .venv" `
+        --exclude "archive, assets, .git, build.ps1, release, CGC-cache, README.md, certs, test, .gitignore, .vscode, .venv, CGC.aip, updates.txt, requirements.txt, README.md, poetry.lock, Dashboards" `
         --clear-cache --compile-app --compile-packages --cleanup-app --cleanup-packages --cleanup-app --module-name .\main.py
 
     if ($LASTEXITCODE -eq 0) {

@@ -1,82 +1,110 @@
 import flet as ft
 from config import ColorScheme
-from scripts import CSVProcessor, ExcelProcessor # type: ignore
+from scripts import CSVProcessor, ExcelProcessor  # type: ignore
 import os
+import asyncio
+
 
 class MainView:
     def __init__(self, page: ft.Page):
         self.page = page
-        self.excel_processor = ExcelProcessor()
         self.csv_processor = CSVProcessor()
         self.selected_files = []
         self.output_path = ""
+        self.is_processing = False
 
         # UI Components
-        self.file_picker = ft.FilePicker(on_result=self.on_files_selected)
-        self.output_picker = ft.FilePicker(on_result=self.on_output_selected)
-        self.page.overlay.extend([self.file_picker, self.output_picker])
-
-        self.selected_file_text = ft.Text(
+        self.selected_files_text = ft.Text(
             "No CSVs Selected", color=ColorScheme.TEXT_SECONDARY, size=14
         )
 
         self.output_path_text = ft.Text(
-            "No Form-16 Selected",
-            color=ColorScheme.TEXT_SECONDARY,
-            size=14
+            "No Form-16 Selected", color=ColorScheme.TEXT_SECONDARY, size=14
         )
 
-        self.status_text = ft.Text(
-            "",
-            color=ColorScheme.TEXT_SECONDARY,
-            size=14
+        self.status_text = ft.Text("", color=ColorScheme.TEXT_SECONDARY, size=14)
+
+        self.progress_bar = ft.ProgressBar(
+            width=300,
+            color=ColorScheme.PRIMARY,
+            bgcolor=ColorScheme.SURFACE,
+            visible=False,
         )
 
-    def on_files_selected(self, e: ft.FilePickerResultEvent):
-        if e.files:
-            self.selected_files = [file.path for file in e.files]
+    async def pick_files(self, e: ft.Event[ft.Button]):
+        files = await ft.FilePicker().pick_files(
+            allow_multiple=True,
+            allowed_extensions=["csv"],
+        )
+        if files:
+            self.selected_files = [file.path for file in files if file.path]
             file_names = [os.path.basename(path) for path in self.selected_files]
-            self.selected_file_text.value = f"Selected {len(self.selected_files)} Files: {', '.join(file_names)}"
-            self.selected_file_text.color = ColorScheme.SUCCESS
+            self.selected_files_text.value = (
+                f"Selected {len(self.selected_files)} Files: {', '.join(file_names)}"
+            )
+            self.selected_files_text.color = ColorScheme.SUCCESS
         else:
             self.selected_files = []
-            self.selected_file_text.value = "No CSVs Selected"
-            self.selected_file_text.color = ColorScheme.TEXT_SECONDARY
+            self.selected_files_text.value = "No CSVs Selected"
+            self.selected_files_text.color = ColorScheme.TEXT_SECONDARY
         self.page.update()
 
-    def on_output_selected(self, e: ft.FilePickerResultEvent):
-        if e.path:
-            self.output_path = e.path
-            self.output_path_text.value = f"Output: {os.path.basename(self.output_path)}"
+    async def pick_output(self, e: ft.Event[ft.Button]):
+        file_path = await ft.FilePicker().save_file(
+            file_name="Form-16 (2026).xlsx",
+            allowed_extensions=["xlsx"],
+        )
+        if file_path:
+            self.output_path = file_path
+            self.output_path_text.value = (
+                f"Output: {os.path.basename(self.output_path)}"
+            )
             self.output_path_text.color = ColorScheme.SUCCESS
         else:
             self.output_path = ""
-            self.output_path_text.value = "Form-16 Not Selected"
+            self.output_path_text.value = "No Form-16 Selected"
             self.output_path_text.color = ColorScheme.TEXT_SECONDARY
         self.page.update()
 
-    def on_submit_clicked(self, e):
+    async def on_submit_clicked(self, e: ft.Event[ft.Button]):
         if not self.selected_files:
-            self.show_status("Please Select Crypto Trade CSVs !", ColorScheme.ERROR)
+            self.show_status("⚠️ Please Select CSVs !", ColorScheme.ERROR)
             return
 
         if not self.output_path:
-            self.show_status("Please Select Form-16 !", ColorScheme.ERROR)
+            self.show_status("⚠️ Please Select Form-16 !", ColorScheme.ERROR)
+            return
+
+        if self.is_processing:
             return
 
         try:
-            self.show_status("Processing Files...", ColorScheme.PRIMARY)
+            self.is_processing = True
+            self.progress_bar.visible = True
+            self.show_status("⏳ Processing Files...", ColorScheme.PRIMARY)
+            self.page.update()
 
-            crypto_data = self.csv_processor.combine_csvs(self.selected_files)
-            # Call the ExcelProcessor to create Form-16
-            create_Excel = self.excel_processor.make_dashboard(self.output_path,crypto_data)
+            # Ensure minimum processing time for UX feedback
+            await asyncio.sleep(0.5)
+
+            # Combine CSV files into a single DataFrame
+            dataframe = self.csv_processor.combine_csvs(self.selected_files)
+
+            create_Excel = ExcelProcessor().make_dashboard(self.output_path, dataframe)
+
+            self.is_processing = False
+            self.progress_bar.visible = False
 
             if create_Excel:
-                self.show_status("Crypto Trades Added To Form-16 Successfully !", ColorScheme.SUCCESS)
+                self.show_status(
+                    "✅ Excel File Created Successfully !", ColorScheme.SUCCESS
+                )
             else:
-                self.show_status("Error Processing File !", ColorScheme.ERROR)
+                self.show_status("❌ Error Processing Files !", ColorScheme.ERROR)
         except Exception as ex:
-            self.show_status(f"Error: {str(ex)}", ColorScheme.ERROR)
+            self.is_processing = False
+            self.progress_bar.visible = False
+            self.show_status(f"❌ Error: {str(ex)}", ColorScheme.ERROR)
 
     def show_status(self, message: str, color: str):
         self.status_text.value = message
@@ -86,35 +114,46 @@ class MainView:
 
     def build(self):
         return ft.Container(
-            # width= self.page.width,
-            # height= self.page.height,
             content=ft.Column(
                 [
-                    # Title
+                    # Title with Icon
                     ft.Container(
-                        content=ft.Text(
-                            "CryptoAIS : Crypto Calculator",
-                            size=32,
-                            weight=ft.FontWeight.BOLD,
-                            color=ColorScheme.PRIMARY,
+                        content=ft.Row(
+                            [
+                                ft.Image(
+                                    src="icons/icon_v2.png",
+                                    width=48,
+                                    height=48,
+                                    fit=ft.BoxFit.CONTAIN,
+                                ),
+                                ft.Text(
+                                    "CryptoAIS : Crypto Trade Calculator",
+                                    size=32,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ColorScheme.PRIMARY,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
                         ),
-                        margin=ft.margin.only(bottom=10),
+                        margin=ft.Margin(bottom=20),
                     ),
                     # Description
                     ft.Container(
                         content=ft.Text(
-                            "Hello, CryptoAIS is a Crypto Trade Analyzer that update the Form-16 of users to include crypto trading details. \nSelect the AIS Crypto CSVs that you downladed from the AIS portal and the desired Form-16 (xlsx) of user.\n",
+                            "Create beautiful excel dashboard for visualizing Crypto Trades",
                             size=16,
                             color=ColorScheme.TEXT_SECONDARY,
+                            text_align=ft.TextAlign.CENTER,
                         ),
-                        margin=ft.margin.only(bottom=30),
+                        margin=ft.Margin(bottom=30),
+                        alignment=ft.Alignment.CENTER,
                     ),
                     # File Selection Section
                     ft.Container(
                         content=ft.Column(
                             [
                                 ft.Text(
-                                    "Select AIS Crypto CSVs:",
+                                    "Select CSV Files:",
                                     size=18,
                                     weight=ft.FontWeight.W_500,
                                     color=ColorScheme.TEXT_PRIMARY,
@@ -122,13 +161,10 @@ class MainView:
                                 ft.Container(
                                     content=ft.Row(
                                         [
-                                            ft.ElevatedButton(
-                                                "Crypto CSVs",
+                                            ft.Button(
+                                                "Browse Files",
                                                 icon=ft.Icons.FOLDER_OPEN,
-                                                on_click=lambda _: self.file_picker.pick_files(
-                                                    allow_multiple=True,
-                                                    allowed_extensions=["csv"],
-                                                ),
+                                                on_click=self.pick_files,
                                                 bgcolor=ColorScheme.PRIMARY,
                                                 color=ft.Colors.WHITE,
                                                 width=200,
@@ -137,23 +173,23 @@ class MainView:
                                                     text_style=ft.TextStyle(
                                                         size=16,
                                                         weight=ft.FontWeight.BOLD,
-                                                    )  # Increased text size
+                                                    )
                                                 ),
                                             )
                                         ]
                                     ),
-                                    margin=ft.margin.only(top=5, bottom=10),
+                                    margin=ft.Margin(top=5, bottom=10),
                                 ),
-                                self.selected_file_text,
+                                self.selected_files_text,
                             ]
                         ),
                         padding=20,
-                        border=ft.border.all(1, ColorScheme.BORDER),
+                        border=ft.Border.all(1, ColorScheme.BORDER),
                         border_radius=8,
                         bgcolor=ColorScheme.SURFACE,
-                        margin=ft.margin.only(bottom=20),
+                        margin=ft.Margin(bottom=20),
                     ),
-                    # Select Form-15 Selection Section
+                    # Select Form-16 Selection Section
                     ft.Container(
                         content=ft.Column(
                             [
@@ -166,13 +202,10 @@ class MainView:
                                 ft.Container(
                                     content=ft.Row(
                                         [
-                                            ft.ElevatedButton(
-                                                "Form-16",
+                                            ft.Button(
+                                                "Save In ",
                                                 icon=ft.Icons.SAVE,
-                                                on_click=lambda _: self.output_picker.save_file(
-                                                    file_name="Form-16.xlsx",
-                                                    allowed_extensions=["xlsx"],
-                                                ),
+                                                on_click=self.pick_output,
                                                 bgcolor=ColorScheme.SECONDARY,
                                                 color=ColorScheme.TEXT_PRIMARY,
                                                 width=200,
@@ -181,25 +214,31 @@ class MainView:
                                                     text_style=ft.TextStyle(
                                                         size=16,
                                                         weight=ft.FontWeight.BOLD,
-                                                    )  # Increased text size
+                                                    )
                                                 ),
                                             )
                                         ]
                                     ),
-                                    margin=ft.margin.only(top=5, bottom=10),
+                                    margin=ft.Margin(top=5, bottom=10),
                                 ),
                                 self.output_path_text,
                             ]
                         ),
                         padding=20,
-                        border=ft.border.all(1, ColorScheme.BORDER),
+                        border=ft.Border.all(1, ColorScheme.BORDER),
                         border_radius=8,
                         bgcolor=ColorScheme.SURFACE,
-                        margin=ft.margin.only(bottom=30),
+                        margin=ft.Margin(bottom=30),
+                    ),
+                    # Progress Bar
+                    ft.Container(
+                        content=self.progress_bar,
+                        alignment=ft.Alignment.CENTER,
+                        margin=ft.Margin(bottom=15),
                     ),
                     # Submit Button
                     ft.Container(
-                        content=ft.ElevatedButton(
+                        content=ft.Button(
                             "Submit",
                             icon=ft.Icons.PLAY_ARROW,
                             on_click=self.on_submit_clicked,
@@ -210,16 +249,15 @@ class MainView:
                             style=ft.ButtonStyle(
                                 text_style=ft.TextStyle(
                                     size=16, weight=ft.FontWeight.BOLD
-                                )  # Increased text size
+                                )
                             ),
                         ),
-                        alignment=ft.alignment.center,
-                        margin=ft.margin.only(bottom=10),
+                        alignment=ft.Alignment.CENTER,
+                        margin=ft.Margin(bottom=5),
                     ),
                     # Status Text
                     ft.Container(
-                        content=self.status_text,
-                        alignment=ft.alignment.center,
+                        content=self.status_text, alignment=ft.Alignment.CENTER
                     ),
                 ]
             ),
