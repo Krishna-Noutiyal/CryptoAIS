@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DOCUMENT Type="Advanced Installer" CreateVersion="22.4" version="22.4" Modules="update" RootPath="." Language="sq" Id="{745787DE-E2B2-4C8E-A95B-E2F5551884BC}">
+  <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
+    <ROW Path="&lt;AI_DICTS&gt;aiu-ue.ail"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.UpdaterEditorComponent">
+    <ROW Section="Update v2.0.0" Key="Name" Value="CryptoAIS"/>
+    <ROW Section="Update v2.0.0" Key="ProductVersion" Value="2.0.0.0" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="URL" Value="https://github.com/Krishna-Noutiyal/CryptoAIS/releases/download/v2.0.0/CryptoAIS.v2.0.0.exe" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="Size" Value="release\CryptoAIS v2.0.0.exe" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="ReleaseDate" Value="23755" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="SHA256" Value="release\CryptoAIS v2.0.0.exe" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="MD5" Value="release\CryptoAIS v2.0.0.exe" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="ServerFileName" Value="CryptoAIS v2.0.0.exe" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="Flags" Value="Critical|NoCache|Os64" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="RegistryKey" Value="HKUD\Software\Krish\CryptoAIS\Version" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="Version" Value="2.0.0.0" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="UpdatedApplications" Value="CryptoAIS[1.0-2.0]" ValueLocId="-"/>
+    <ROW Section="Update v2.0.0" Key="Description" Value="Major release introducing first-class support for Financial Year 2026 tax computations, with a redesigned reporting dashboard and a Poetry-driven build pipeline."/>
+    <ROW Section="Update v2.0.0" Key="Feature" Value="Dashboard v2 (FY-2026) — new 7-column dashboard: S.No, Date of Acquisition, Date of Transfer, Cost of Acquisition, Consideration Received, Capital Gain, TDS Deducted (= MAX(Capital Gain, 0)).&#13;&#10;Total row — consolidated totals appended at the bottom of the dashboard for CoA, CR, CG, and TDS.&#13;&#10;Active-only CSV filtering — only Status == &quot;active&quot; AIS records are processed.&#13;&#10;Source-file tracking — every combined row is tagged with the originating CSV filename (from_file column).&#13;&#10;Poetry-based builds — pyproject.toml + poetry.lock drive deterministic installs."/>
+    <ROW Section="Update v2.0.0" Key="Enhancement" Value="New red style preset for negative values and totals.&#13;&#10;Worksheet row buffer raised to 1000 rows to handle large AIS exports.&#13;&#10;Default column width unified at 30 for a consistent dashboard look.&#13;&#10;Minimum Python version raised to 3.11+ to align with current Flet and Pandas releases.&#13;&#10;build.ps1 now reads the version dynamically from pyproject.toml."/>
+    <ROW Section="Update v2.0.0" Key="BugFix" Value="Total Row overwriting last entry — offset corrected (last = num_rows + 3) so the Total row no longer overwrites the last data row.&#13;&#10;Wrong active worksheet on Form-16 — workbook&apos;s active sheet is now explicitly set to the Crypto sheet, so Excel always opens on the dashboard.&#13;&#10;Project metadata — corrected project description and product name in pyproject.toml."/>
+    <ATTRIBUTE name="OutputFileName" value="updates.txt"/>
+    <ATTRIBUTE name="OutputFolder" value="."/>
+  </COMPONENT>
+</DOCUMENT>

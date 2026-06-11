@@ -1,0 +1,29 @@
+;aiu;
+
+[Update v2.0.0]
+Name = CryptoAIS
+ProductVersion = 2.0.0.0
+URL = https://github.com/Krishna-Noutiyal/CryptoAIS/releases/download/v2.0.0/CryptoAIS.v2.0.0.exe
+Size = 51628648
+ReleaseDate = 11/06/2026
+SHA256 = C88C073319FDFF914244D4F86AB369B5897C929C032275F4FBF6595B497D7ADB
+MD5 = 53eea8172f564d36f968569596700c8c
+ServerFileName = CryptoAIS v2.0.0.exe
+Flags = Critical|NoCache|Os64
+RegistryKey = HKUD\Software\Krish\CryptoAIS\Version
+Version = 2.0.0.0
+UpdatedApplications = CryptoAIS[1.0-2.0]
+Description = Major release introducing first-class support for Financial Year 2026 tax computations, with a redesigned reporting dashboard and a Poetry-driven build pipeline.
+Feature = Dashboard v2 (FY-2026) — new 7-column dashboard: S.No, Date of Acquisition, Date of Transfer, Cost of Acquisition, Consideration Received, Capital Gain, TDS Deducted (= MAX(Capital Gain, 0)).
+Feature1 = Total row — consolidated totals appended at the bottom of the dashboard for CoA, CR, CG, and TDS.
+Feature2 = Active-only CSV filtering — only Status == "active" AIS records are processed.
+Feature3 = Source-file tracking — every combined row is tagged with the originating CSV filename (from_file column).
+Feature4 = Poetry-based builds — pyproject.toml + poetry.lock drive deterministic installs.
+Enhancement = New red style preset for negative values and totals.
+Enhancement1 = Worksheet row buffer raised to 1000 rows to handle large AIS exports.
+Enhancement2 = Default column width unified at 30 for a consistent dashboard look.
+Enhancement3 = Minimum Python version raised to 3.11+ to align with current Flet and Pandas releases.
+Enhancement4 = build.ps1 now reads the version dynamically from pyproject.toml.
+BugFix = Total Row overwriting last entry — offset corrected (last = num_rows + 3) so the Total row no longer overwrites the last data row.
+BugFix1 = Wrong active worksheet on Form-16 — workbook's active sheet is now explicitly set to the Crypto sheet, so Excel always opens on the dashboard.
+BugFix2 = Project metadata — corrected project description and product name in pyproject.toml.
