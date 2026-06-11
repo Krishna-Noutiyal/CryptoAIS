@@ -1,7 +1,7 @@
 [project]
 name = "CryptoAIS"
 version = "2.0.0"
-description = "A capital gain visualizer that calculates profit/loss and taxation on Crypto Trades using AIS's Data"
+description = "A Crypto Trade visualizer that calculates profit/loss and taxation on Crypto Trades using AIS's Data"
 authors = [
     {name = "Krishna Noutiyal",email = "mail@krishnanoutiyal.in"}
 ]
@@ -25,7 +25,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.flet]
-product = "CGC"
+product = "CryptoAIS"
 company = "Pooja ITR Center"
 copyright = "Copyright (C) 2026 Pooja ITR Center"
 [dependency-groups]
