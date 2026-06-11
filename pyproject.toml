@@ -28,3 +28,7 @@ build-backend = "poetry.core.masonry.api"
 product = "CGC"
 company = "Pooja ITR Center"
 copyright = "Copyright (C) 2026 Pooja ITR Center"
+[dependency-groups]
+dev = [
+    "ipykernel (>=7.3.0,<8.0.0)"
+]

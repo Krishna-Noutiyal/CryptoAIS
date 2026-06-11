@@ -409,7 +409,7 @@ class ExcelProcessor:
         """################# Total Crypto Gain/Loss #################"""
         # Calculate the number of data rows
         num_rows = len(df)
-        last = num_rows + 2
+        last = num_rows + 3
 
         cr = sum(df["consideration_received"])
         cg = sum(df["capital_gain"])
