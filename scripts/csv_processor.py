@@ -10,6 +10,7 @@ class CSVProcessor:
             "Information Source",
             "Date of Payment/Credit",
             "Amount Paid/Credited - Reported by Source",
+            "Status",
         ]
 
     def combine_csvs(self, file_paths: List[str], output_path="./") -> pd.DataFrame:
@@ -63,6 +64,8 @@ class CSVProcessor:
 
                 # Clean up any empty rows
                 df = df.dropna(how="all")
+                df = df[df["Status"].str.lower() == "active"]
+                df["from_file"] = os.path.basename(file_path)
 
                 combined_data.append(df)
                 print(f"Processed {os.path.basename(file_path)}: {len(df)} data rows")
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     test = CSVProcessor()
 
     # List all CSV files in the /test folder
-    test_folder = "test/cryptodata"
+    test_folder = "test"
     file_list = glob.glob(os.path.join(test_folder, "*.csv"))
     print("Files found:", file_list)
 
